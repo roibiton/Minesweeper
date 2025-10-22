@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minesweeper</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body onload="onInit()">
+
+    <header class="main-header">
+        <div class="logo">Minesweeper</div>
+    </header>
+
+    <div class="score-container"></div>
+
+    <div>
+        <div class="game-state"><span></span></div>
+        <div class="lives-container"></div>
+        <table>
+            <tbody class="table">
+            </tbody>
+        </table>
+
+    </div>
+    <div class="btn-container">
+        <button onclick="updateDifficult(this)" data-len="4" class="button">😊</button>
+        <button onclick="updateDifficult(this)" data-len="6" class="button">😐</button>
+        <button onclick="updateDifficult(this)" data-len="8" class="button">😨</button>
+    </div>
+
+    <div class="modal">
+        <h2>You won!</h2>
+        <button class="button" onclick="onCloseModal()">restart</button>
+    </div>
+
+    <div class="modal loser-modal">
+        <h2>YOU LOST! TRY AGAIN...</h2>
+        <button class="button" onclick="onCloseLoserModal()">restart</button>
+    </div>
+
+    <div class="signature">
+        <span class="label">CREATED BY:</span>
+        <span class="author">ROI</span>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
