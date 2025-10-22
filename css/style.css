@@ -157,6 +157,25 @@ body {
     text-align: center;
 }
 
+.used-hint {
+    color: #f1f1f1;
+    filter: hue-rotate(199deg) saturate(200%);
+}
+
+.hint {
+    color: #f1f1f1;
+}
+
+.clicked {
+    font-size: large;
+    animation: neonPulse 0.5s infinite alternate;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 15px #e9e500;
+}
+
+.hint:hover {
+    cursor: pointer;
+}
+
 .main-header {
     position: sticky;
     margin-bottom: 20px;
@@ -216,7 +235,7 @@ body {
     text-shadow:
         0 0 5px #7c3aed,
         0 0 10px rgba(124, 58, 237, 0.6);
-    animation: neonPulse 1s infinite alternate;
+    animation: neonPulse 1.5s infinite alternate;
 }
 
 @keyframes neonPulse {
