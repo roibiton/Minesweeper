@@ -12,9 +12,6 @@ body {
     /* overflow: hidden; */
 }
 
-.light-body {
-    background: linear-gradient(#6b11cb9c 0%, #ebe1e1 70%);
-}
 
 .cells-container {
     display: grid;
@@ -77,16 +74,22 @@ body {
     color: #4c1d95;
 }
 
+.revealed2 {
+    background-color: #e9d5ffe7;
+    color: #000000;
+}
+
 .cell:hover {
-    background-color: #f4f3f36f;
+    background-color: #0000006f;
     cursor: pointer;
 }
 
+.revealed.incorrect-cell,
 .incorrect-cell {
     animation-name: flashRed;
     animation-duration: 0.2s;
     animation-iteration-count: 2;
-    animation-fill-mode: both;
+    animation-fill-mode: forwards;
 }
 
 .safe-cell-highlight {
@@ -116,9 +119,16 @@ body {
 }
 
 .toggle-mode-btn {
-    font-size: 50%;
+    font-size: 100%;
     width: 50px;
     height: 50px;
+}
+
+.toggle-mode-btn-txt {
+    filter: hue-rotate(150deg);
+}
+.toggle-mode-btn-txt2 {
+    filter: hue-rotate(2deg);
 }
 
 .undo-btn {
@@ -159,14 +169,43 @@ body {
     box-shadow: 0 10px 20px rgba(185, 16, 185, 0.699);
 }
 
+.modal .button {
+    background: linear-gradient(#6609c9 0%, #000000e1 100%);
+    padding: 18px 36px;
+    font-size: medium;
+    color: #ffffff;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8),
+        0 0 15px #7c3aed;
+    transition: transform 0.3s ease;
+}
+
 .loser-modal {
     background: linear-gradient(#c90909 0%, #000000e1 100%);
     box-shadow: 0 10px 20px rgba(185, 16, 16, 0.699);
 }
 
-.loser-modal button {
-    background: linear-gradient(#c90909 0%, #000000e1 100%);
-    box-shadow: 0 6px 10px rgba(185, 16, 16, 0.699);
+.loser-button {
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    background: linear-gradient(#c90909 0%, #000000e1 100%) !important;
+    padding: 18px 36px;
+    font-size: medium;
+    color: #ffffff!important;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8),
+        0 0 15px #7c3aed;
+    transition: transform 0.3s ease;
+}
+
+.loser-button:hover {
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    background: linear-gradient(#e9dddd6b 0%, #000000c9 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(228, 222, 238, 0.4);
 }
 
 .btn-container {
@@ -175,15 +214,12 @@ body {
     gap: 1.5rem;
     margin-bottom: 1rem;
     padding: 0.5rem;
-    margin-top: 2rem;
+    margin-top: 3.5rem;
 }
 
-.modal .button {
-    padding: 18px 36px;
-    font-size: medium;
-}
 
 .button:hover {
+    cursor: pointer;
     background: linear-gradient(#e9dddd6b 0%, #000000c9 100%);
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(228, 222, 238, 0.4);
@@ -213,7 +249,8 @@ body {
     gap: 2.5rem;
     margin-bottom: 1rem;
     padding: 0.5rem;
-    margin-top: 2rem;
+    margin-top: 3.5rem;
+    width: 140px;
 }
 
 .score-container {
@@ -222,7 +259,9 @@ body {
     gap: 2.5rem;
     margin-bottom: 1rem;
     padding: 0.5rem;
-    margin-top: 2rem;
+    margin-top: 3.5rem;
+    width: 140px;
+
 }
 
 .score {
@@ -261,6 +300,18 @@ body {
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 15px #e9e500;
 }
 
+.mega-clicked {
+    font-size: x-small;
+    color: yellow;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 15px #e9e500;
+}
+
+.mega-hint-selected{
+    background-color: #1ac06d;
+    border: 3px solid #ff4500 ;
+    box-shadow: 0 0 10px #ff4500;
+}
+
 .hint:hover {
     cursor: pointer;
 }
@@ -295,7 +346,7 @@ body {
 
 
 .signature {
-    margin-top: 0%;
+    margin-top: 2%;
     bottom: 10px;
     font-family: 'Roboto Mono', monospace;
     text-transform: uppercase;
@@ -316,12 +367,28 @@ body {
 .signature .author {
     font-size: 0.9rem;
     font-weight: bold;
-    color: #7c3aed;
+    color: #ffffff;
     letter-spacing: 1.5px;
     text-shadow:
         0 0 5px #7c3aed,
         0 0 10px rgba(124, 58, 237, 0.6);
     animation: neonPulse 1.5s infinite alternate;
+}
+
+.light-body {
+    background: linear-gradient(#6b11cb9c 0%, #ebe1e1 70%);
+    color: #000000;
+}
+
+.light-cell {
+    /* background: linear-gradient(#0000009c 0%, #ebe1e1 70%); */
+    background: linear-gradient(#6b11cb9c 0%, #ebe1e1 70%);
+}
+
+.light-body .score {
+    background: linear-gradient(#6b11cb9c 0%, #ebe1e1 70%);
+    color: #000000; 
+    text-shadow: none;
 }
 
 @keyframes neonPulse {
@@ -337,13 +404,15 @@ body {
 }
 
 @keyframes flashRed {
-
-    0%,
-    100% {
-        background-color: transparent;
+    0% {
+        background-color: #ff4d4d;
     }
 
     50% {
+        background-color: #f10000;
+    }
+    
+    100% {
         background-color: #ff4d4d;
     }
 }

@@ -2,7 +2,8 @@
 const MINE = '💣'
 const FLAG = '🏳️'
 const HINT_ICON = '💡'
-const USED_HINT_ICON = '🌟'
+const LIGHT = '🔆'
+const DARK = '🌙'
 
 var gBoard
 var gTimerInterval
@@ -10,9 +11,16 @@ var gTimeOut
 var gCurrTimerResult
 var gCellClass = 'big-cell'
 var gIsFirstClick = true
+var gIsDarkMode = true
 var gLife = 3
 var gHints = 3
 var gSafeClicks = 3
+var gMega = 1
+var gMegaHintState = 0
+var gMegaHintCoords = {
+    first: null,
+    second: null
+}
 
 var gGame = {
     isOn: false,
@@ -37,6 +45,13 @@ var gHighestScores = {
     difficultHigh: Infinity
 }
 
+var gState = {
+    previousBoard: [],
+    previousLife: [],
+    previousIsFirstClick: [],
+    previousGame: []
+}
+
 function onInit() {
     if (gTimerInterval) clearInterval(gTimerInterval)
     gGame.isOn = true
@@ -47,8 +62,13 @@ function onInit() {
     gIsFirstClick = true
     gLife = 3
     gHints = 3
-    gSafeClicks=3
+    gSafeClicks = 3
+    gMega = 1
+    gMegaHintState = 0
+    gMegaHintCoords.first = null
+    gMegaHintCoords.second = null
     gCurrTimerResult = Infinity
+    document.querySelector('.mega-btn').classList.remove('mega-clicked')
     renderBoard()
     renderHighest()
     renderLives()
@@ -96,6 +116,7 @@ function renderBoard() {
                 }
             }
             var className = (cell.isRevealed) ? 'revealed' : ''
+            if (!gIsDarkMode && cell.isRevealed) className += ' light-cell'
             if (cell.isHinted && !cell.isRevealed) className += ' hinted'
             strHTML += `\t<td data-i="${i}" data-j="${j}"
             class="cell ${className} ${gCellClass}" 
@@ -110,6 +131,24 @@ function renderBoard() {
 
 function onCellClicked(elCell, i, j) {
     const cell = gBoard[i][j]
+    if (gMegaHintState === 1) {
+        gMegaHintCoords.first = { i: i, j: j }
+        gMegaHintState = 2
+        elCell.classList.add('mega-hint-selected')
+        return
+    }
+    if (gMegaHintState === 2) {
+        gMegaHintCoords.second = { i: i, j: j }
+        gMegaHintState = 0
+        gMega--
+        document.querySelector('.mega-btn').classList.remove('mega-clicked')
+        revealMegaAreaTemporarily()
+        const elFirst = document.querySelector(`[data-i="${gMegaHintCoords.first.i}"][data-j="${gMegaHintCoords.first.j}"]`)
+        if (elFirst) elFirst.classList.remove('mega-hint-selected')
+        gMegaHintCoords.first = null
+        gMegaHintCoords.second = null
+        return
+    }
     if (cell.isRevealed || cell.isMarked || gLife <= 0) return
     const elHint = document.querySelector('.hint.clicked')
     if (elHint) {
@@ -118,18 +157,29 @@ function onCellClicked(elCell, i, j) {
         return
     }
     if (gIsFirstClick) {
+        gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
+        gState.previousLife.push(gLife)
+        gState.previousIsFirstClick.push(gIsFirstClick)
+        gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
         placeRandomMines(gBoard, i, j)
         setMinesNegsCount(gBoard)
-        gIsFirstClick = false
         startTimer()
     }
     if (cell.isMine) {
+        gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
+        gState.previousLife.push(gLife)
+        gState.previousIsFirstClick.push(gIsFirstClick)
+        gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
         cell.isRevealed = true
         gLife--
         elCell.innerText = MINE
         elCell.classList.add('incorrect-cell')
+        renderBoard()
         gTimeOut = setTimeout(() => {
-            elCell.classList.remove('incorrect-cell')
+            const newElCell = document.querySelector(`[data-i="${i}"][data-j="${j}"]`)
+            if (newElCell) {
+                newElCell.classList.remove('incorrect-cell')
+            }
         }, 300)
         renderLives()
         if (gLife === 0) {
@@ -137,6 +187,12 @@ function onCellClicked(elCell, i, j) {
         }
         checkGameOver()
     } else {
+        if (!gIsFirstClick) {
+            gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
+            gState.previousLife.push(gLife)
+            gState.previousIsFirstClick.push(gIsFirstClick)
+            gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
+        }
         cell.isRevealed = true
         gGame.revealedCount++
         if (cell.minesAroundCount === 0) {
@@ -145,6 +201,7 @@ function onCellClicked(elCell, i, j) {
         renderBoard()
         checkGameOver()
     }
+    gIsFirstClick = false
 }
 
 function onCellMarked(elCell, i, j, ev) {
@@ -153,6 +210,10 @@ function onCellMarked(elCell, i, j, ev) {
     const cell = gBoard[i][j]
     if (cell.isRevealed && !cell.isMine) return
     if (cell.isMarked) {
+        gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
+        gState.previousLife.push(gLife)
+        gState.previousIsFirstClick.push(gIsFirstClick)
+        gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
         cell.isMarked = false
         elCell.innerText = ''
         if (cell.isMine) {
@@ -164,11 +225,19 @@ function onCellMarked(elCell, i, j, ev) {
     }
     else {
         if (cell.isMine) {
+            gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
+            gState.previousLife.push(gLife)
+            gState.previousIsFirstClick.push(gIsFirstClick)
+            gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
             cell.isMarked = true
             elCell.innerText = FLAG
             gGame.markedCount++
         }
         else {
+            gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
+            gState.previousLife.push(gLife)
+            gState.previousIsFirstClick.push(gIsFirstClick)
+            gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
             cell.isMarked = true
             elCell.innerText = FLAG
         }
@@ -224,29 +293,94 @@ function onSafeClick(elSafe) {
 }
 
 function renderSafeClicks() {
-    const elSafeClickBtn = document.querySelector('.safe-click-btn') 
+    const elSafeClickBtn = document.querySelector('.safe-click-btn')
     if (elSafeClickBtn) {
         elSafeClickBtn.innerText = `Safe (${gSafeClicks})`
     }
 }
 
-function onUndo(){
-
+function onUndo() {
+    if (gState.previousBoard.length === 0) return
+    gBoard = gState.previousBoard.pop()
+    gLife = gState.previousLife.pop()
+    gIsFirstClick = gState.previousIsFirstClick.pop()
+    gGame = gState.previousGame.pop()
+    if (gIsFirstClick && gTimerInterval) {
+        clearInterval(gTimerInterval)
+        gHints = 3
+        gSafeClicks = 3
+        gMega = 1
+    }
+    renderBoard()
+    renderLives()
+    renderSafeClicks()
+    renderHints()
 }
 
-function onMegaHint(){
-
-
+function onMegaHint(elBtn) {
+    if (gMega <= 0 || !gGame.isOn || gIsFirstClick) return
+    if (gMegaHintState !== 0) {
+        gMegaHintState = 0
+        elBtn.classList.remove('mega-clicked')
+        gMegaHintCoords.first = null
+        gMegaHintCoords.second = null
+        return
+    }
+    gMegaHintState = 1
+    elBtn.classList.toggle('mega-clicked')
 }
 
-function onToggleMode(){
-    document.querySelectorAll('.button').forEach(el => {
-        el.classList.toggle('light-body')
-    })
-    
+function revealMegaAreaTemporarily() {
+    const { first, second } = gMegaHintCoords
+    const startRow = Math.min(first.i, second.i)
+    const endRow = Math.max(first.i, second.i)
+    const startCol = Math.min(first.j, second.j)
+    const endCol = Math.max(first.j, second.j)
+    const cellsToReveal = []
+    for (let i = startRow; i <= endRow; i++) {
+        for (let j = startCol; j <= endCol; j++) {
+            const cell = gBoard[i][j]
+            if (!cell.isRevealed && !cell.isMarked) {
+                cell.isHinted = true
+                cellsToReveal.push(cell)
+            }
+        }
+    }
+    renderBoard()
+    setTimeout(() => {
+        cellsToReveal.forEach(cell => {
+            cell.isHinted = false
+        })
+        renderBoard()
+    }, 2000)
 }
 
-function onEditMines(){
+function onToggleMode() {
+    gIsDarkMode = !gIsDarkMode
+    var elBody = document.querySelector('body')
+    elBody.classList.toggle('light-body')
+    var elBtns = document.querySelectorAll('button', '.score')
+    for (var i = 0; i < elBtns.length; i++) {
+        var elBtn = elBtns[i]
+        if (elBtn.classList.contains('light-body')) {
+            elBtn.classList.remove('light-body')
+        }
+        else elBtn.classList.add('light-body')
+    }
+    if (gIsDarkMode) {
+        var elToggleBtnTxt = document.querySelector('.toggle-mode-btn span')
+        elToggleBtnTxt.innerText = LIGHT
+        elToggleBtnTxt.classList.remove('toggle-mode-btn-txt')
+    }
+    else {
+        var elToggleBtnTxt = document.querySelector('.toggle-mode-btn span')
+        elToggleBtnTxt.innerText = DARK
+        elToggleBtnTxt.classList.add('toggle-mode-btn-txt')
+    }
+    renderBoard()
+}
+
+function onEditMines() {
 
 }
 
@@ -310,7 +444,7 @@ function renderHints() {
 }
 
 function onHintClicked(elHint) {
-    if (gHints <= 0 || !gGame.isOn) return
+    if (gHints <= 0 || !gGame.isOn || gIsFirstClick) return
     document.querySelectorAll('.hint').forEach(el => {
         if (el !== elHint) {
             el.classList.remove('clicked')
@@ -367,6 +501,10 @@ function checkGameOver() {
 }
 
 function openModal() {
+    gState.previousBoard = []
+    gState.previousLife = []
+    gState.previousGame = []
+    gState.previousIsFirstClick = []
     const finalScore = gCurrTimerResult
     renderHighest()
     const elModal = document.querySelector('.modal')
@@ -385,6 +523,10 @@ function onCloseModal() {
 }
 
 function openLoserModal() {
+    gState.previousBoard = []
+    gState.previousLife = []
+    gState.previousGame = []
+    gState.previousIsFirstClick = []
     clearInterval(gTimerInterval)
     const elModal = document.querySelector('.loser-modal')
     elModal.style.opacity = 1

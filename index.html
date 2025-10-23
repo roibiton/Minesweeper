@@ -18,10 +18,10 @@
     <div style="display: flex; gap: 1rem;">
         <div class="mode-container">
             <button onclick="onUndo(this)" class="button undo-btn">UNDO</button>
-            <button onclick="onEditMines(this)" class="button edit-mines-btn">EDIT</button>
+            <button onclick="onEditMines(this)" class="button edit-mines-btn">EDIT <span class="mine-count-display"></span></button>
         </div>
         <div class="btn-container">
-            <button onclick="onToggleMode()" class="button toggle-mode-btn">🔆</button>
+            <button onclick="onToggleMode()" class="button toggle-mode-btn"><span>🔆</span></button>
             <button onclick="onSafeClick(this)" class="button safe-click-btn"></button>
             <button onclick="onMegaHint(this)" class="button mega-btn">MEGA</button>
         </div>
@@ -58,7 +58,7 @@
 
     <div class="modal loser-modal">
         <h2>YOU LOST! TRY AGAIN...</h2>
-        <button class="button" onclick="onCloseLoserModal()">restart</button>
+        <button class="loser-button" onclick="onCloseLoserModal()">restart</button>
     </div>
 
     <div class="signature">
