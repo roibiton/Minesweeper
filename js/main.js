@@ -8,9 +8,11 @@ var gBoard
 var gTimerInterval
 var gTimeOut
 var gCurrTimerResult
+var gCellClass = 'big-cell'
 var gIsFirstClick = true
 var gLife = 3
 var gHints = 3
+var gSafeClicks = 3
 
 var gGame = {
     isOn: false,
@@ -20,13 +22,13 @@ var gGame = {
 }
 var gLevel = {
     SIZE: 4,
-    MINES: 3
+    MINES: 3,
 }
 
 var gSize = {
     easySize: 4,
-    mediumSize: 6,
-    difficultSize: 8
+    mediumSize: 8,
+    difficultSize: 12
 }
 
 var gHighestScores = {
@@ -42,14 +44,16 @@ function onInit() {
     gGame.revealedCount = 0
     gGame.secsPassed = 0
     gBoard = createBoard(gLevel.SIZE)
-    gLife = 3
     gIsFirstClick = true
+    gLife = 3
     gHints = 3
+    gSafeClicks=3
     gCurrTimerResult = Infinity
     renderBoard()
     renderHighest()
     renderLives()
     renderHints()
+    renderSafeClicks()
 }
 
 function createBoard(size) {
@@ -85,6 +89,7 @@ function renderBoard() {
                     value = cell.minesAroundCount
                     if (cell.isMine) {
                         value = MINE
+                        if (cell.isMarked) value = FLAG
                     } else if (!cell.isHinted && value === 0) {
                         value = ''
                     }
@@ -93,7 +98,7 @@ function renderBoard() {
             var className = (cell.isRevealed) ? 'revealed' : ''
             if (cell.isHinted && !cell.isRevealed) className += ' hinted'
             strHTML += `\t<td data-i="${i}" data-j="${j}"
-            class="cell ${className}" 
+            class="cell ${className} ${gCellClass}" 
             oncontextmenu="onCellMarked(this,${i},${j},event)"
             onclick="onCellClicked(this, ${i}, ${j})" >${value}</td>\n`
         }
@@ -186,6 +191,63 @@ function expandShown(board, rowIdx, colIdx) {
             }
         }
     }
+}
+
+function onSafeClick(elSafe) {
+    if (gSafeClicks <= 0 || !gGame.isOn || gIsFirstClick) return
+    const safeCells = []
+    for (var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard[0].length; j++) {
+            const cell = gBoard[i][j]
+            if (!cell.isMine && !cell.isRevealed && !cell.isMarked) {
+                safeCells.push({ i: i, j: j })
+            }
+        }
+    }
+    if (safeCells.length === 0) return
+    const randIdx = getRandomInt(0, safeCells.length)
+    const safeCellCoords = safeCells[randIdx]
+    const rowIdx = safeCellCoords.i
+    const colIdx = safeCellCoords.j
+    const elCell = document.querySelector(`[data-i="${rowIdx}"][data-j="${colIdx}"]`)
+    if (elCell) {
+        elCell.classList.add('safe-cell-highlight')
+    }
+    gSafeClicks--
+    elSafe.innerText = `SAFE: ${gSafeClicks}`
+    console.log(`Safe Clicks remaining: ${gSafeClicks}`)
+    setTimeout(() => {
+        if (elCell) {
+            elCell.classList.remove('safe-cell-highlight')
+        }
+    }, 1500)
+}
+
+function renderSafeClicks() {
+    const elSafeClickBtn = document.querySelector('.safe-click-btn') 
+    if (elSafeClickBtn) {
+        elSafeClickBtn.innerText = `Safe (${gSafeClicks})`
+    }
+}
+
+function onUndo(){
+
+}
+
+function onMegaHint(){
+
+
+}
+
+function onToggleMode(){
+    document.querySelectorAll('.button').forEach(el => {
+        el.classList.toggle('light-body')
+    })
+    
+}
+
+function onEditMines(){
+
 }
 
 function placeRandomMines(board, excludeI, excludeJ) {
@@ -338,10 +400,14 @@ function onCloseLoserModal() {
 
 function updateDifficult(elBtn) {
     gLevel.SIZE = +elBtn.dataset.len
-    gLevel.MINES = gLevel.SIZE/2
+    gLevel.MINES = gLevel.SIZE / 2 * 1.5
+    if (gLevel.SIZE === gSize.easySize) gCellClass = 'big-cell'
+    if (gLevel.SIZE === gSize.mediumSize) gCellClass = 'medium-cell'
+    if (gLevel.SIZE === gSize.difficultSize) gCellClass = 'small-cell'
     gBoard = createBoard(gLevel.SIZE)
     gLife = 3
     onCloseModal()
+    onCloseLoserModal()
     renderLives()
 }
 

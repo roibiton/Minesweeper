@@ -10,29 +10,46 @@
 
 <body onload="onInit()">
 
-    <header class="main-header">
-        <div class="logo">Minesweeper</div>
-    </header>
-
-    <div class="score-container"></div>
-
     <div>
-        <div class="game-state"><span></span></div>
-        <div class="lives-container"></div>
-
-        <div class="hints-container"></div>
-        <table>
-            <tbody class="table">
-            </tbody>
-        </table>
+        <header class="main-header">
+            <div class="logo">Minesweeper</div>
+        </header>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+        <div class="mode-container">
+            <button onclick="onUndo(this)" class="button undo-btn">UNDO</button>
+            <button onclick="onEditMines(this)" class="button edit-mines-btn">EDIT</button>
+        </div>
+        <div class="btn-container">
+            <button onclick="onToggleMode()" class="button toggle-mode-btn">🔆</button>
+            <button onclick="onSafeClick(this)" class="button safe-click-btn"></button>
+            <button onclick="onMegaHint(this)" class="button mega-btn">MEGA</button>
+        </div>
+        <div>
+            <div class="game-state"><span></span></div>
+            <div class="lives-container"></div>
+            <div class="hints-container"></div>
+            <table>
+                <tbody class="table">
+                </tbody>
+            </table>
+        </div>
+        <div class="btn-container">
+            <div>
+                <button onclick="updateDifficult(this)" data-len="4" class="button length-btn">😇</button>
+            </div>
+            <div>
+                <button onclick="updateDifficult(this)" data-len="8" class="button length-btn">😐</button>
+            </div>
+            <div>
+                <button onclick="updateDifficult(this)" data-len="12" class="button length-btn">😈</button>
+            </div>
+        </div>
+        <div class="score-container"></div>
 
 
     </div>
-    <div class="btn-container">
-        <button onclick="updateDifficult(this)" data-len="4" class="button">😇</button>
-        <button onclick="updateDifficult(this)" data-len="6" class="button">😐</button>
-        <button onclick="updateDifficult(this)" data-len="8" class="button">😈</button>
-    </div>
+
 
     <div class="modal">
         <h2>You won!</h2>
