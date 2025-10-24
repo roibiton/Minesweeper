@@ -1,3 +1,13 @@
+.basad {
+    position: absolute;
+    color: #ffffff;
+    letter-spacing: 2px;
+    right: 20px;
+    top: 20px;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8),
+        0 0 15px #7c3aed;
+}
+
 body {
     display: flex;
     flex-direction: column;
@@ -11,7 +21,6 @@ body {
     height: min-content;
     /* overflow: hidden; */
 }
-
 
 .cells-container {
     display: grid;
@@ -127,6 +136,7 @@ body {
 .toggle-mode-btn-txt {
     filter: hue-rotate(150deg);
 }
+
 .toggle-mode-btn-txt2 {
     filter: hue-rotate(2deg);
 }
@@ -192,7 +202,7 @@ body {
     background: linear-gradient(#c90909 0%, #000000e1 100%) !important;
     padding: 18px 36px;
     font-size: medium;
-    color: #ffffff!important;
+    color: #ffffff !important;
     letter-spacing: 2px;
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.8),
         0 0 15px #7c3aed;
@@ -307,9 +317,9 @@ body {
     animation: neonPulse 0.5s infinite alternate;
 }
 
-.mega-hint-selected{
+.mega-hint-selected {
     background-color: #1ac06d;
-    border: 3px solid #ff4500 ;
+    border: 3px solid #ff4500;
     box-shadow: 0 0 10px #ff4500;
 }
 
@@ -388,7 +398,7 @@ body {
 
 .light-body .score {
     background: linear-gradient(#6b11cb9c 0%, #ebe1e1 70%);
-    color: #000000; 
+    color: #000000;
     text-shadow: none;
 }
 
@@ -412,7 +422,7 @@ body {
     50% {
         background-color: #f10000;
     }
-    
+
     100% {
         background-color: #ff4d4d;
     }
