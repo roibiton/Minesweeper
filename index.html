@@ -9,7 +9,6 @@
 </head>
 
 <body onload="onInit()">
-
     <div>
         <header class="main-header">
             <div class="logo">Minesweeper</div>
@@ -18,7 +17,10 @@
     <div style="display: flex; gap: 1rem;">
         <div class="mode-container">
             <button onclick="onUndo(this)" class="button undo-btn">UNDO</button>
-            <button onclick="onEditMines(this)" class="button edit-mines-btn">EDIT <span class="mine-count-display"></span></button>
+            <div style="display: flex; flex-direction: column;">
+                <button onclick="onEditMines(this)" class="button edit-mines-btn">EDIT</button>
+                <span style="color: red;" class="mine-count-display"></span>
+            </div>
         </div>
         <div class="btn-container">
             <button onclick="onToggleMode()" class="button toggle-mode-btn"><span>🔆</span></button>
@@ -27,7 +29,7 @@
         </div>
         <div>
             <div class="game-state"><span></span></div>
-            <div class="lives-container"></div>
+            <div style="display: flex; gap: 1rem; justify-content: center;" class="lives-container"></div>
             <div class="hints-container"></div>
             <table>
                 <tbody class="table">

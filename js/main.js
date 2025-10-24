@@ -4,6 +4,8 @@ const FLAG = '🏳️'
 const HINT_ICON = '💡'
 const LIGHT = '🔆'
 const DARK = '🌙'
+const HEART_GIF='<img style="width: 25px;" src="gif/red-heart-bumping.gif" alt="">'
+const BROKEN_HEART_GIF='<img style="width: 22px;" src="gif/broken-heart.gif" alt="">'
 
 var gBoard
 var gTimerInterval
@@ -21,7 +23,8 @@ var gMegaHintCoords = {
     first: null,
     second: null
 }
-
+var gIsManualMode = false
+var gIsPreConfigured = false
 var gGame = {
     isOn: false,
     revealedCount: 0,
@@ -52,7 +55,7 @@ var gState = {
     previousGame: []
 }
 
-function onInit() {
+function onInit(isManual = false) {
     if (gTimerInterval) clearInterval(gTimerInterval)
     gGame.isOn = true
     gGame.markedCount = 0
@@ -60,6 +63,8 @@ function onInit() {
     gGame.secsPassed = 0
     gBoard = createBoard(gLevel.SIZE)
     gIsFirstClick = true
+    gIsPreConfigured = false
+    gIsManualMode = isManual
     gLife = 3
     gHints = 3
     gSafeClicks = 3
@@ -69,6 +74,17 @@ function onInit() {
     gMegaHintCoords.second = null
     gCurrTimerResult = Infinity
     document.querySelector('.mega-btn').classList.remove('mega-clicked')
+    document.querySelector('.edit-mines-btn').classList.remove('clicked')
+    document.querySelector('.mine-count-display').innerText = ``
+    if (!gIsManualMode) {
+        if (gLevel.SIZE === gSize.easySize) gLevel.MINES = gLevel.SIZE / 2 * 1.5 + 1
+        else if (gLevel.SIZE === gSize.mediumSize) gLevel.MINES = gLevel.SIZE / 2 * 1.5 + 1
+        else if (gLevel.SIZE === gSize.difficultSize) gLevel.MINES = gLevel.SIZE / 2 * 1.5 + 1
+    }
+    else {
+        gLevel.MINES = 0
+        gGame.isOn = false
+    }
     renderBoard()
     renderHighest()
     renderLives()
@@ -101,16 +117,21 @@ function renderBoard() {
         for (var j = 0; j < gBoard[0].length; j++) {
             const cell = gBoard[i][j]
             var value = ''
-            if (cell.isMarked && !cell.isRevealed) {
+            if (gIsManualMode && cell.isMine) {
+                value = MINE
+            }
+            else if (cell.isMarked && !cell.isRevealed) {
                 value = FLAG
-            } else {
+            }
+            else {
                 var isVisible = cell.isRevealed || cell.isHinted
                 if (isVisible) {
                     value = cell.minesAroundCount
                     if (cell.isMine) {
                         value = MINE
                         if (cell.isMarked) value = FLAG
-                    } else if (!cell.isHinted && value === 0) {
+                    }
+                    else if (!cell.isHinted && value === 0) {
                         value = ''
                     }
                 }
@@ -118,10 +139,11 @@ function renderBoard() {
             var className = (cell.isRevealed) ? 'revealed' : ''
             if (!gIsDarkMode && cell.isRevealed) className += ' light-cell'
             if (cell.isHinted && !cell.isRevealed) className += ' hinted'
+            var onClickHandler = gIsManualMode ? `onManualPlaceMine(${i}, ${j})` : `onCellClicked(this, ${i}, ${j})`
             strHTML += `\t<td data-i="${i}" data-j="${j}"
             class="cell ${className} ${gCellClass}" 
             oncontextmenu="onCellMarked(this,${i},${j},event)"
-            onclick="onCellClicked(this, ${i}, ${j})" >${value}</td>\n`
+            onclick="${onClickHandler}" >${value}</td>\n`
         }
         strHTML += `</tr>\n`
     }
@@ -149,7 +171,7 @@ function onCellClicked(elCell, i, j) {
         gMegaHintCoords.second = null
         return
     }
-    if (cell.isRevealed || cell.isMarked || gLife <= 0) return
+    if (cell.isRevealed || cell.isMarked || gLife <= 0 || gIsManualMode) return
     const elHint = document.querySelector('.hint.clicked')
     if (elHint) {
         elHint.classList.remove('clicked')
@@ -157,19 +179,19 @@ function onCellClicked(elCell, i, j) {
         return
     }
     if (gIsFirstClick) {
-        gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
-        gState.previousLife.push(gLife)
-        gState.previousIsFirstClick.push(gIsFirstClick)
-        gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
-        placeRandomMines(gBoard, i, j)
-        setMinesNegsCount(gBoard)
+        saveToState()
+        if (gIsPreConfigured) {
+            setMinesNegsCount(gBoard)
+        } else {
+            if (gLevel.MINES > 0) {
+                placeRandomMines(gBoard, i, j)
+            }
+            setMinesNegsCount(gBoard)
+        }
         startTimer()
     }
     if (cell.isMine) {
-        gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
-        gState.previousLife.push(gLife)
-        gState.previousIsFirstClick.push(gIsFirstClick)
-        gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
+        saveToState()
         cell.isRevealed = true
         gLife--
         elCell.innerText = MINE
@@ -186,12 +208,10 @@ function onCellClicked(elCell, i, j) {
             openLoserModal()
         }
         checkGameOver()
-    } else {
+    }
+    else {
         if (!gIsFirstClick) {
-            gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
-            gState.previousLife.push(gLife)
-            gState.previousIsFirstClick.push(gIsFirstClick)
-            gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
+            saveToState()
         }
         cell.isRevealed = true
         gGame.revealedCount++
@@ -210,10 +230,7 @@ function onCellMarked(elCell, i, j, ev) {
     const cell = gBoard[i][j]
     if (cell.isRevealed && !cell.isMine) return
     if (cell.isMarked) {
-        gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
-        gState.previousLife.push(gLife)
-        gState.previousIsFirstClick.push(gIsFirstClick)
-        gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
+        saveToState()
         cell.isMarked = false
         elCell.innerText = ''
         if (cell.isMine) {
@@ -225,19 +242,13 @@ function onCellMarked(elCell, i, j, ev) {
     }
     else {
         if (cell.isMine) {
-            gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
-            gState.previousLife.push(gLife)
-            gState.previousIsFirstClick.push(gIsFirstClick)
-            gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
+            saveToState()
             cell.isMarked = true
             elCell.innerText = FLAG
             gGame.markedCount++
         }
         else {
-            gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
-            gState.previousLife.push(gLife)
-            gState.previousIsFirstClick.push(gIsFirstClick)
-            gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
+            saveToState()
             cell.isMarked = true
             elCell.innerText = FLAG
         }
@@ -289,7 +300,7 @@ function onSafeClick(elSafe) {
         if (elCell) {
             elCell.classList.remove('safe-cell-highlight')
         }
-    }, 1500)
+    }, 2000)
 }
 
 function renderSafeClicks() {
@@ -318,7 +329,7 @@ function onUndo() {
 }
 
 function onMegaHint(elBtn) {
-    if (gMega <= 0 || !gGame.isOn || gIsFirstClick) return
+    if ((gMega <= 0 || !gGame.isOn || gIsFirstClick) && !gIsPreConfigured) return
     if (gMegaHintState !== 0) {
         gMegaHintState = 0
         elBtn.classList.remove('mega-clicked')
@@ -380,8 +391,46 @@ function onToggleMode() {
     renderBoard()
 }
 
-function onEditMines() {
+function onManualPlaceMine( i, j) {
+    if (!gIsManualMode) return
 
+    const cell = gBoard[i][j]
+    const elMineCount = document.querySelector('.mine-count-display')
+
+    if (cell.isMine) {
+        cell.isMine = false
+        gLevel.MINES--
+    }
+    else {
+        cell.isMine = true
+        gLevel.MINES++
+    }
+    elMineCount.innerText = `Mines: ${gLevel.MINES}`
+    renderBoard()
+}
+
+function onEditMines(elBtn) {
+    const elMineCount = document.querySelector('.mine-count-display')
+    if (gIsManualMode) {
+        gIsManualMode = false
+        elBtn.classList.remove('clicked')
+        elMineCount.innerText = `Mines: ${gLevel.MINES}`
+        if (gLevel.MINES > 0) {
+            gGame.isOn = true
+            gIsPreConfigured = true
+            renderBoard()
+        }
+        else {
+            onInit()
+        }
+    }
+    else {
+        gLevel.MINES = 0
+        onInit(true)
+        elBtn.classList.add('clicked')
+        elMineCount.innerText = ``
+        gIsPreConfigured = false
+    }
 }
 
 function placeRandomMines(board, excludeI, excludeJ) {
@@ -411,10 +460,10 @@ function renderLives() {
     const elState = document.querySelector('.game-state span')
     var strHtml = ''
     for (var i = 0; i < gLife; i++) {
-        strHtml += '❤️'
+        strHtml += `${HEART_GIF}`
     }
     for (var i = gLife; i < 3; i++) {
-        strHtml += '💔'
+        strHtml += `${BROKEN_HEART_GIF}`
     }
     elLives.innerHTML = strHtml
     if (gLife === 3) elState.innerText = ''
@@ -434,10 +483,10 @@ function renderHints() {
         var icon = HINT_ICON
         if (!isAvailable) {
             hintClass += ' used-hint'
-        } else if (isClickable) {
+        }
+        else if (isClickable) {
             onClickAttr = `onclick="onHintClicked(this)"`
         }
-
         strHtml += `<span class="${hintClass}" data-hint-id="${i}" ${onClickAttr}>${icon}</span>`
     }
     elHints.innerHTML = strHtml
@@ -500,6 +549,13 @@ function checkGameOver() {
     }
 }
 
+function saveToState() {
+    gState.previousBoard.push(JSON.parse(JSON.stringify(gBoard)))
+    gState.previousGame.push(JSON.parse(JSON.stringify(gGame)))
+    gState.previousLife.push(gLife)
+    gState.previousIsFirstClick.push(gIsFirstClick)
+}
+
 function openModal() {
     gState.previousBoard = []
     gState.previousLife = []
@@ -542,7 +598,7 @@ function onCloseLoserModal() {
 
 function updateDifficult(elBtn) {
     gLevel.SIZE = +elBtn.dataset.len
-    gLevel.MINES = gLevel.SIZE / 2 * 1.5
+    gLevel.MINES = gLevel.SIZE / 2 * 1.5 + 1
     if (gLevel.SIZE === gSize.easySize) gCellClass = 'big-cell'
     if (gLevel.SIZE === gSize.mediumSize) gCellClass = 'medium-cell'
     if (gLevel.SIZE === gSize.difficultSize) gCellClass = 'small-cell'
@@ -580,7 +636,8 @@ function loadScore(key, gKey) {
     var savedScoreStr = localStorage.getItem(key)
     if (savedScoreStr) {
         gHighestScores[gKey] = parseFloat(savedScoreStr)
-    } else {
+    }
+    else {
         gHighestScores[gKey] = Infinity
     }
 }
