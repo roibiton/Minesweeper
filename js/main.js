@@ -311,7 +311,7 @@ function renderSafeClicks() {
 }
 
 function onUndo() {
-    if (gState.previousBoard.length === 0||gIsManualMode||gGame.revealedCount===0) return
+    if (gState.previousBoard.length === 0||gIsManualMode||(gGame.revealedCount===0&&gLife===3)) return
     gBoard = gState.previousBoard.pop()
     gLife = gState.previousLife.pop()
     gIsFirstClick = gState.previousIsFirstClick.pop()
